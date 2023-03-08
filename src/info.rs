@@ -1,15 +1,71 @@
 use std::path::PathBuf;
+use structopt::StructOpt;
 use image::{GenericImageView};
 
-pub async fn info(file_path: String) {
-    let path = PathBuf::from(file_path);
-    let img = image::open(path).unwrap();
+#[derive(Debug, StructOpt)]
+pub struct Command {
+    /// Input file
+    #[structopt(parse(from_os_str))]
+    pub(crate) input: PathBuf,
 
-    // The color method returns the image's `ColorType`.
-    println!("{:?}", img.color());
+    /// Output file, stdout if not present
+    #[structopt(parse(from_os_str))]
+    output: Option<PathBuf>,
 
-    // Write the contents of this image to the Writer in PNG format.
-    img.save("../test/test.png").unwrap();
+    #[structopt(
+    short,
+    long = "--long-option",
+    required_if("out", "file"),
+    parse(from_os_str)
+    )]
+    long_option: Option<PathBuf>,
+
+    #[structopt(subcommand)]
+    cmd: Option<Cmd>,
+}
+
+#[derive(Debug, StructOpt)]
+enum Cmd {
+    #[structopt(
+    about = "get image's information"
+    )]
+    Info {
+        path: String,
+    },
+    #[structopt(
+    about = "get image's dimensions"
+    )]
+    Dimensions {
+        file_path: String,
+    },
+}
+
+impl Command {
+    pub(crate) fn info(self) {
+        let path = PathBuf::from(self.file);
+        let img = image::open(path).unwrap();
+
+        // The color method returns the image's `ColorType`.
+        println!("{:?}", img.color());
+
+        // Write the contents of this image to the Writer in PNG format.
+        img.save("../test/test.jpg").unwrap();
+    }
+}
+
+// pub fn info(file_path: String) {
+//     let path = PathBuf::from(file_path);
+//     let img = image::open(path).unwrap();
+//
+//     // The color method returns the image's `ColorType`.
+//     println!("{:?}", img.color());
+//
+//     // Write the contents of this image to the Writer in PNG format.
+//     img.save("../test/test.jpg").unwrap();
+// }
+
+pub fn test(file_path: String) {
+    println!("dimensions {:?}", file_path)
 }
 
 pub fn dimensions(file_path: String) {

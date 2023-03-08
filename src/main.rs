@@ -1,46 +1,40 @@
 mod info;
-mod convert;
 
+use std::path::PathBuf;
 use structopt::StructOpt;
 
-#[derive(StructOpt)]
-enum Cli {
-    Info{
-        path: String,
-    },
-    #[structopt(
-    about = "get image's dimensions"
-    )]
-    Dimensions {
-        path: String,
-    },
-    #[structopt(
-    about = "Plays specified room",
-    help = "USAGE: play MyRoomName"
-    )]
-    Play {
-        name: String,
-    },
-    #[structopt(
-    about = "Test a specified room",
-    help = "USAGE: volume MyRoomName"
-    )]
-    Convert {
-        path: String,
-    },
+#[derive(Debug, StructOpt)]
+#[structopt(
+name = "pr",
+about = "Rust CLI to convert image"
+)]
+#[structopt(setting = structopt::clap::AppSettings::ColoredHelp)]
+#[structopt(setting = structopt::clap::AppSettings::SubcommandRequired)]
+struct Opts {
+    // short and long flags (-d, --debug) will be deduced from the field's name
+    #[structopt(short, long)]
+    debug: bool,
+
+    #[structopt(subcommand)]
+    cmd: Tool,
 }
 
+#[derive(Debug, StructOpt)]
+enum Tool {
+    #[structopt(name = "info")]
+    Info(info::Command),
+}
 #[tokio::main]
 async fn main() {
-    let args = Cli::from_args();
-    return match args {
-        Cli::Info { path }  => info::info(path).await,
-        Cli::Dimensions { path } => info::dimensions(path),
-        Cli::Play { name } => play(name).await,
-        Cli::Convert { path } => convert::to_webp(path).await
+    let args = Opts::from_args();
+    match args.cmd {
+        Tool::Info(args) => {
+            println!("{:?}", args)
+            // info::test(args.file)
+        }
     }
-}
-// c'est bien le nom de la fonction qu'on appelle en argument
-async fn play(name: String){
-    println!("ça marche {}", name);
+    // let opts = Opts::from_args();
+    // let args = Tool::from_args();
+    // println!("{:?}", opts);
+    // println!("{:?}", tools);
 }
